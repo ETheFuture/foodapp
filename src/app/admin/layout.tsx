@@ -41,6 +41,9 @@ export default async function AdminLayout({
             <Link className="text-zinc-600 hover:text-zinc-900" href="/admin/dishes">
               Gerechten
             </Link>
+            <Link className="text-zinc-600 hover:text-zinc-900" href="/admin/categories">
+              Categorieën
+            </Link>
             <Link className="text-zinc-600 hover:text-zinc-900" href="/admin/stats">
               Cijfers
             </Link>
