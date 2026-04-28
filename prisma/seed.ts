@@ -1,8 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
 import { dishNamesByCategory, imagePool } from "./seed-dishes";
 
 const prisma = new PrismaClient();
+
+const TARGET_DISHES = 50;
 
 const restaurants = [
   {
@@ -171,15 +172,25 @@ const openingTemplate = {
   sun: "10:00–22:00",
 };
 
+function buildDishList(): { name: string; categoryName: string }[] {
+  const out: { name: string; categoryName: string }[] = [];
+  for (const [catName, names] of Object.entries(dishNamesByCategory)) {
+    for (const name of names) {
+      if (out.length >= TARGET_DISHES) return out;
+      out.push({ name, categoryName: catName });
+    }
+  }
+  return out;
+}
+
 async function main() {
-  await prisma.analyticsEvent.deleteMany();
-  await prisma.dishImage.deleteMany();
-  await prisma.dishTag.deleteMany();
-  await prisma.dish.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.restaurant.deleteMany();
-  await prisma.category.deleteMany();
-  await prisma.tag.deleteMany();
+  const n = await prisma.dish.count();
+  if (n > 0) {
+    console.log(
+      `Seed overgeslagen: ${n} gerecht(en) staan al in de database (idempotent).`,
+    );
+    return;
+  }
 
   const categoryEntries = await Promise.all(
     Object.keys(dishNamesByCategory).map((name) =>
@@ -219,90 +230,69 @@ async function main() {
     ),
   );
 
-  const adminHash = await bcrypt.hash("admin123", 12);
-  const restHash = await bcrypt.hash("rest123", 12);
-  await prisma.user.create({
-    data: {
-      email: "admin@foodapp.local",
-      passwordHash: adminHash,
-      role: "ADMIN",
-    },
-  });
-  await prisma.user.create({
-    data: {
-      email: "restaurant@foodapp.local",
-      passwordHash: restHash,
-      role: "RESTAURANT",
-      restaurantId: restRows[0]!.id,
-    },
-  });
-
+  const dishList = buildDishList();
   let imageIdx = 0;
-  let dishIndex = 0;
-  for (const [catName, dishNames] of Object.entries(dishNamesByCategory)) {
-    const cat = categoryByName[catName];
+  for (let dishIndex = 0; dishIndex < dishList.length; dishIndex += 1) {
+    const { name: dName, categoryName } = dishList[dishIndex]!;
+    const cat = categoryByName[categoryName];
     if (!cat) continue;
-    for (const dName of dishNames) {
-      const restaurant = restRows[dishIndex % restRows.length]!;
-      const base = 6 + (dName.length % 5) * 0.5 + (dishIndex % 4);
-      const price = Math.round((base + Math.sin(dishIndex) * 2) * 10) / 10;
-      const isFeatured = dishIndex % 5 === 0;
-      const tags =
-        [
-          "Huisgemaakt",
-          dishIndex % 3 === 0 ? "Vegetarisch" : null,
-          dishIndex % 7 === 0 ? "Pittig" : null,
-          dishIndex % 11 === 0 ? "Vegan" : null,
-        ]
-          .filter((x): x is string => Boolean(x))
-          .map((n) => tagByName[n])
-          .filter(Boolean) as { id: string; name: string }[];
+    const restaurant = restRows[dishIndex % restRows.length]!;
+    const base = 6 + (dName.length % 5) * 0.5 + (dishIndex % 4);
+    const price = Math.round((base + Math.sin(dishIndex) * 2) * 10) / 10;
+    const isFeatured = dishIndex % 5 === 0;
+    const tags = (
+      [
+        "Huisgemaakt",
+        dishIndex % 3 === 0 ? "Vegetarisch" : null,
+        dishIndex % 7 === 0 ? "Pittig" : null,
+        dishIndex % 11 === 0 ? "Vegan" : null,
+      ] as (string | null)[]
+    )
+      .filter((x): x is string => Boolean(x))
+      .map((t) => tagByName[t])
+      .filter(Boolean) as { id: string }[];
 
-      const desc = `Signature bereiding — ${dName} bij ${restaurant.name}. Foto- en smaakfokus.`;
+    const desc = `Signature bereiding — ${dName} bij ${restaurant.name}. Foto- en smaakfokus.`;
 
-      const dish = await prisma.dish.create({
-        data: {
-          name: dName,
-          description: desc,
-          price,
-          categoryId: cat.id,
-          restaurantId: restaurant.id,
-          isAvailable: true,
-          isFeatured,
-        },
-      });
+    const dish = await prisma.dish.create({
+      data: {
+        name: dName,
+        description: desc,
+        price,
+        categoryId: cat.id,
+        restaurantId: restaurant.id,
+        isAvailable: true,
+        isFeatured,
+      },
+    });
 
+    await prisma.dishImage.create({
+      data: {
+        dishId: dish.id,
+        imageUrl: imagePool[imageIdx % imagePool.length]!,
+        isMain: true,
+      },
+    });
+    if (dishIndex % 4 === 0) {
+      imageIdx += 1;
       await prisma.dishImage.create({
         data: {
           dishId: dish.id,
-          imageUrl: imagePool[imageIdx % imagePool.length]!,
-          isMain: true,
+          imageUrl: imagePool[(imageIdx + 1) % imagePool.length]!,
+          isMain: false,
         },
       });
-      if (dishIndex % 4 === 0) {
-        imageIdx += 1;
-        await prisma.dishImage.create({
-          data: {
-            dishId: dish.id,
-            imageUrl: imagePool[(imageIdx + 1) % imagePool.length]!,
-            isMain: false,
-          },
-        });
-      }
-      for (const t of tags) {
-        await prisma.dishTag.create({
-          data: { dishId: dish.id, tagId: t.id },
-        });
-      }
-      dishIndex += 1;
-      imageIdx += 1;
     }
+    for (const t of tags) {
+      await prisma.dishTag.create({
+        data: { dishId: dish.id, tagId: t.id },
+      });
+    }
+    imageIdx += 1;
   }
 
   const count = await prisma.dish.count();
-  console.log(`Seeded ${count} dishes, ${restRows.length} restaurants.`);
-  console.log("Logins: admin@foodapp.local / admin123");
-  console.log("        restaurant@foodapp.local / rest123 (Casa Riva)");
+  console.log(`Seeded ${count} gerechten (doel: ${TARGET_DISHES}), ${restRows.length} restaurants.`);
 }
 
 main()

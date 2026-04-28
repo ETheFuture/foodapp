@@ -137,8 +137,8 @@ export async function searchDishes(filters: SearchFilters): Promise<DishListItem
   }
   if (search.length > 0) {
     where.OR = [
-      { name: { contains: search } },
-      { description: { contains: search } },
+      { name: { contains: search, mode: "insensitive" } },
+      { description: { contains: search, mode: "insensitive" } },
     ];
   }
 
