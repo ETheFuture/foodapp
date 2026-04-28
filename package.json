@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/ensure-database-url.cjs && prisma generate && prisma migrate deploy && prisma db seed && next build",
+    "build": "node scripts/vercel-build.cjs",
     "build:next": "prisma generate && next build",
     "vercel-migrate": "prisma migrate deploy",
     "start": "next start",
@@ -14,7 +14,7 @@
     "db:studio": "prisma studio",
     "db:up": "docker compose up -d",
     "db:reset": "prisma migrate deploy && prisma db seed",
-    "postinstall": "prisma generate"
+    "postinstall": "node scripts/prisma-generate-safe.cjs"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
