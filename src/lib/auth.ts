@@ -4,11 +4,9 @@ import { cookies } from "next/headers";
 export const SESSION_COOKIE = "fd_session";
 const DAY = 60 * 60 * 24 * 7;
 
-function getSecret() {
+function getSecret(): Uint8Array | null {
   const s = process.env.AUTH_SECRET;
-  if (!s || s.length < 16) {
-    throw new Error("AUTH_SECRET must be set (min 16 characters)");
-  }
+  if (!s || s.length < 16) return null;
   return new TextEncoder().encode(s);
 }
 
@@ -20,6 +18,10 @@ export type SessionPayload = {
 };
 
 export async function createSessionToken(payload: SessionPayload): Promise<string> {
+  const sec = getSecret();
+  if (!sec) {
+    throw new Error("AUTH_SECRET ontbreekt of is te kort (min 16 karakters).");
+  }
   return new SignJWT({
     email: payload.email,
     role: payload.role,
@@ -29,15 +31,17 @@ export async function createSessionToken(payload: SessionPayload): Promise<strin
     .setSubject(payload.sub)
     .setIssuedAt()
     .setExpirationTime(`${DAY}s`)
-    .sign(getSecret());
+    .sign(sec);
 }
 
 export async function readSession(): Promise<SessionPayload | null> {
+  const sec = getSecret();
+  if (!sec) return null;
   const jar = await cookies();
   const raw = jar.get(SESSION_COOKIE)?.value;
   if (!raw) return null;
   try {
-    const { payload } = await jwtVerify(raw, getSecret());
+    const { payload } = await jwtVerify(raw, sec);
     return {
       sub: String(payload.sub ?? ""),
       email: String(payload.email ?? ""),
