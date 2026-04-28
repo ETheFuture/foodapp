@@ -1,0 +1,100 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String      @id @default(cuid())
+  email          String      @unique
+  passwordHash   String
+  role           String
+  restaurantId   String?
+  restaurant     Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  createdAt      DateTime    @default(now())
+}
+
+model Restaurant {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  address      String
+  latitude     Float
+  longitude    Float
+  phone        String?
+  website      String?
+  instagram    String?
+  priceRange   String
+  cuisineType  String
+  openingHours  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  dishes       Dish[]
+  users        User[]
+}
+
+model Category {
+  id     String @id @default(cuid())
+  name   String @unique
+  dishes Dish[]
+}
+
+model Tag {
+  id     String    @id @default(cuid())
+  name   String    @unique
+  dishes DishTag[]
+}
+
+model Dish {
+  id            String      @id @default(cuid())
+  name          String
+  description   String?
+  price         Float
+  categoryId    String
+  category      Category    @relation(fields: [categoryId], references: [id])
+  restaurantId  String
+  restaurant    Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  isAvailable   Boolean     @default(true)
+  isFeatured    Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  images        DishImage[]
+  tags          DishTag[]
+
+  @@index([name])
+  @@index([restaurantId])
+  @@index([categoryId])
+}
+
+model DishImage {
+  id       String @id @default(cuid())
+  dishId   String
+  dish     Dish   @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  imageUrl String
+  isMain   Boolean @default(false)
+
+  @@index([dishId])
+}
+
+model DishTag {
+  dishId String
+  tagId  String
+  dish   Dish   @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([dishId, tagId])
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  type       String
+  entityType String
+  entityId   String
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
