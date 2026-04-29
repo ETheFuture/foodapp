@@ -3,26 +3,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getRestaurantById } from "@/lib/data/restaurants";
 import { TrackView } from "@/components/TrackView";
-import { AMSTERDAM_DEFAULT } from "@/lib/geo";
-import { distanceKm } from "@/lib/geo";
+import { AMSTERDAM_DEFAULT, distanceKm } from "@/lib/geo";
 import { DishCard } from "@/components/DishCard";
 import type { DishListItem, DishWithRelations } from "@/lib/data/dishes";
 
 type PageProps = { params: Promise<{ id: string }> };
 
-function toListItem(
-  d: DishWithRelations,
-  userLat: number,
-  userLon: number,
-): DishListItem {
+function toListItem(d: DishWithRelations, userLat: number, userLon: number): DishListItem {
   return {
     ...d,
-    distanceKm: distanceKm(
-      userLat,
-      userLon,
-      d.restaurant.latitude,
-      d.restaurant.longitude,
-    ),
+    distanceKm: distanceKm(userLat, userLon, d.restaurant.latitude, d.restaurant.longitude),
   };
 }
 
@@ -33,108 +23,97 @@ export default async function RestaurantPage({ params }: PageProps) {
   if (!r) notFound();
 
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${r.latitude},${r.longitude}`;
+  const cover = r.dishes[0]?.images[0];
 
   let hours: Record<string, string> | null = null;
   try {
-    if (r.openingHours) {
-      const o = JSON.parse(r.openingHours) as Record<string, string>;
-      hours = o;
-    }
-  } catch {
-    hours = null;
-  }
-
-  const cover = r.dishes[0]?.images[0];
+    if (r.openingHours) hours = JSON.parse(r.openingHours) as Record<string, string>;
+  } catch { hours = null; }
 
   return (
-    <div>
+    <div className="min-h-dvh bg-[var(--bg)]">
       <TrackView entityType="restaurant" entityId={r.id} />
-      <div className="relative h-48 w-full overflow-hidden sm:h-64">
+
+      {/* Cover */}
+      <div className="relative h-52 w-full overflow-hidden sm:h-64">
         {cover ? (
-          <Image
-            src={cover.imageUrl}
-            alt={r.name}
-            fill
-            className="object-cover"
-            priority
-            sizes="100vw"
-          />
+          <Image src={cover.imageUrl} alt={r.name} fill className="object-cover" priority sizes="100vw" />
         ) : (
           <div className="h-full w-full bg-zinc-200" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg)] to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg)] via-transparent to-transparent" />
       </div>
-      <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
-          {r.name}
-        </h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          {r.cuisineType} · {r.priceRange}
-        </p>
-        {r.description && (
-          <p className="mt-4 text-zinc-600 leading-relaxed">{r.description}</p>
-        )}
 
-        <div className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
-          <p className="text-zinc-800">{r.address}</p>
-          {r.phone && <p className="text-zinc-600">Tel. {r.phone}</p>}
-          {r.website && (
-            <a
-              href={r.website}
-              className="text-[var(--accent)] hover:underline"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Website
-            </a>
-          )}
-          {r.instagram && <p className="text-zinc-600">{r.instagram}</p>}
+      <div className="relative z-10 mx-auto w-full max-w-lg px-5 pb-12 sm:px-6">
+        <div className="-mt-10">
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--text)]">{r.name}</h1>
+          <p className="mt-1 text-sm text-zinc-500">{r.cuisineType} · {r.priceRange}</p>
         </div>
 
-        {hours && (
-          <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-4">
-            <h2 className="text-sm font-semibold text-zinc-500">Openingstijden</h2>
-            <ul className="mt-2 space-y-1 text-sm text-zinc-800">
-              {Object.entries(hours)
-                .filter(([k]) => k !== "note")
-                .map(([day, v]) => (
-                  <li key={day} className="flex justify-between gap-4">
-                    <span className="capitalize text-zinc-500">{day}</span>
-                    <span>{v}</span>
-                  </li>
-                ))}
-            </ul>
-            {hours.note && (
-              <p className="mt-2 text-xs text-zinc-500">{String(hours.note)}</p>
-            )}
-          </div>
+        {r.description && (
+          <p className="mt-4 text-[15px] leading-relaxed text-zinc-600">{r.description}</p>
         )}
 
-        <div className="mt-6">
+        {/* Info */}
+        <div className="mt-5 space-y-2 text-sm text-zinc-600">
+          <p>{r.address}</p>
+          {r.phone && <p>{r.phone}</p>}
+        </div>
+
+        {/* Actions */}
+        <div className="mt-5 flex gap-2">
           <a
             href={mapsUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex h-12 items-center justify-center rounded-2xl bg-[#0a0a0a] px-6 text-sm font-semibold text-white"
+            className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--text)] text-sm font-semibold text-white transition hover:opacity-90"
           >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7Z" />
+              <circle cx="12" cy="9" r="2.5" />
+            </svg>
             Route
           </a>
+          {r.website && (
+            <a
+              href={r.website}
+              target="_blank"
+              rel="noreferrer"
+              className="flex h-10 flex-1 items-center justify-center rounded-xl border border-zinc-200 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+            >
+              Website
+            </a>
+          )}
         </div>
 
-        <div className="mt-12">
-          <h2 className="text-xl font-semibold text-zinc-900">Gerechten</h2>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {r.dishes.map((d) => (
-              <DishCard key={d.id} dish={toListItem(d, lat, lon)} />
-            ))}
+        {/* Opening hours */}
+        {hours && (
+          <div className="mt-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/[0.04]">
+            <p className="mb-2 text-xs font-medium text-zinc-400">Openingstijden</p>
+            <ul className="space-y-1 text-sm">
+              {Object.entries(hours)
+                .filter(([k]) => k !== "note")
+                .map(([day, v]) => (
+                  <li key={day} className="flex justify-between">
+                    <span className="capitalize text-zinc-500">{day}</span>
+                    <span className="text-zinc-800">{v}</span>
+                  </li>
+                ))}
+            </ul>
           </div>
-        </div>
+        )}
 
-        <p className="mt-8 text-sm text-zinc-500">
-          <Link href="/search" className="text-[var(--accent)] hover:underline">
-            Terug naar zoeken
-          </Link>
-        </p>
+        {/* Dishes */}
+        {r.dishes.length > 0 && (
+          <div className="mt-8">
+            <h2 className="mb-3 text-lg font-semibold text-[var(--text)]">Menu</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {r.dishes.map((d) => (
+                <DishCard key={d.id} dish={toListItem(d, lat, lon)} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

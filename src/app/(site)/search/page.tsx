@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { AMSTERDAM_DEFAULT } from "@/lib/geo";
 import { getCategories, searchDishes } from "@/lib/data/dishes";
 import { DishCard } from "@/components/DishCard";
@@ -9,7 +8,6 @@ type SearchParams = {
   categoryId?: string;
   maxDistance?: string;
   maxPrice?: string;
-  open?: string;
 };
 
 export default async function SearchPage({
@@ -35,7 +33,7 @@ export default async function SearchPage({
         categoryId: p.categoryId || null,
         maxDistanceKm: maxDistance,
         maxPrice,
-        onlyOpen: p.open === "1",
+        onlyOpen: false,
         userLat: lat,
         userLon: lon,
       }),
@@ -46,50 +44,47 @@ export default async function SearchPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
-      <h1 className="text-3xl font-semibold tracking-tight text-[var(--text)]">
-        Zoeken
+    <div className="mx-auto w-full max-w-lg px-4 pb-8 pt-4 sm:px-6">
+      <h1 className="text-xl font-semibold tracking-tight text-[var(--text)]">
+        Ontdekken
       </h1>
-      <p className="mt-2 text-sm text-zinc-500">Gerechten, niet adressen.</p>
 
       {dbError && (
-        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <p className="font-medium">Zoeken faalt: geen database.</p>
-          <p className="mt-1 text-xs opacity-80">{dbError}</p>
+        <div className="mt-3 rounded-xl bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
+          Geen databaseverbinding.
         </div>
       )}
 
-      <div className="mt-8">
+      <div className="mt-4">
         <SearchFilters
           initial={{
             q: p.q ?? "",
             categoryId: p.categoryId ?? "",
             maxDistance: String(maxDistance),
             maxPrice: String(maxPrice),
-            onlyOpen: p.open === "1",
+            onlyOpen: false,
           }}
           categories={categories}
         />
       </div>
 
-      <p className="mt-6 text-sm text-zinc-500">
+      <p className="mt-5 text-xs text-zinc-400">
         {dbError
-          ? "0 gerechten (database onbereikbaar)"
-          : `${dishes.length} ${dishes.length === 1 ? "gerecht" : "gerechten"} gevonden`}
+          ? "0 gerechten"
+          : `${dishes.length} ${dishes.length === 1 ? "gerecht" : "gerechten"}`}
       </p>
+
       {!dbError && dishes.length === 0 && (
-        <div className="mt-8 rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/80 px-6 py-12 text-center text-zinc-500">
-          Geen match. Probeer zonder trefwoord, of vergroot de afstand (standaard
-          25 km) en de max. prijs.{" "}
-          <Link href="/" className="font-medium text-[var(--accent)]">
-            Home
-          </Link>
+        <div className="mt-8 flex flex-col items-center gap-2 py-12 text-center">
+          <p className="text-sm text-zinc-500">Geen resultaten.</p>
+          <p className="text-xs text-zinc-400">Vergroot de afstand of wis je zoekterm.</p>
         </div>
       )}
+
       {!dbError && dishes.length > 0 && (
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {dishes.map((d) => (
-            <DishCard key={d.id} dish={d} />
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          {dishes.map((d, i) => (
+            <DishCard key={d.id} dish={d} priority={i < 4} />
           ))}
         </div>
       )}

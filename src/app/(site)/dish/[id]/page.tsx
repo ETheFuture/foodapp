@@ -15,107 +15,99 @@ export default async function DishPage({ params }: PageProps) {
   const dish = await getDishListItemById(id, lat, lon);
   if (!dish) notFound();
 
-  const related = await getRelatedDishes(dish, lat, lon, 6);
+  const related = await getRelatedDishes(dish, lat, lon, 4);
   const main = dish.images.find((i) => i.isMain) ?? dish.images[0];
-  const rest = dish.images.filter((i) => i.id !== main?.id);
 
   return (
-    <div>
+    <div className="min-h-dvh bg-[var(--bg)]">
       <TrackView entityType="dish" entityId={dish.id} />
-      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
-        <div className="mb-3 text-sm text-zinc-500">
-          <Link href="/search" className="hover:text-zinc-800">
-            ← Zoeken
-          </Link>{" "}
-          · {dish.category.name}
+
+      {/* Hero image — edge to edge on mobile */}
+      {main && (
+        <div className="relative aspect-[3/4] w-full overflow-hidden sm:aspect-[16/10] sm:max-h-[60vh]">
+          <Image
+            src={main.imageUrl}
+            alt={dish.name}
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg)] via-transparent to-transparent" />
         </div>
+      )}
 
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-          <div>
-            {main && (
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-zinc-100 shadow-sm ring-1 ring-black/5">
-                <Image
-                  src={main.imageUrl}
-                  alt={dish.name}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 60vw"
-                />
-              </div>
-            )}
-            {rest.length > 0 && (
-              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {rest.slice(0, 3).map((im) => (
-                  <div
-                    key={im.id}
-                    className="relative aspect-[4/3] overflow-hidden rounded-xl"
-                  >
-                    <Image
-                      src={im.imageUrl}
-                      alt=""
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 50vw, 20vw"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-4xl">
-              {dish.name}
-            </h1>
-            <p className="mt-2 text-2xl font-semibold text-zinc-900">
+      <div className="relative z-10 mx-auto w-full max-w-lg px-5 pb-12 sm:px-6">
+        {/* Main info */}
+        <div className={main ? "-mt-16" : "pt-4"}>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--text)] sm:text-3xl">
+            {dish.name}
+          </h1>
+          <div className="mt-2 flex items-center gap-3 text-sm text-zinc-500">
+            <span className="text-lg font-semibold text-[var(--text)]">
               €{dish.price.toFixed(2).replace(".", ",")}
-            </p>
-            <p className="mt-1 text-sm text-zinc-500">
+            </span>
+            <span className="h-1 w-1 rounded-full bg-zinc-300" aria-hidden />
+            <span>
               {dish.distanceKm < 1
-                ? `${Math.round(dish.distanceKm * 1000)} m`
-                : `${dish.distanceKm.toFixed(1)} km`}{" "}
-              vanaf {dish.restaurant.name}
-            </p>
-            {dish.description && (
-              <p className="mt-6 text-base leading-relaxed text-zinc-600">
-                {dish.description}
-              </p>
-            )}
-            <div className="mt-4 flex flex-wrap gap-2">
-              {dish.tags.map((t) => (
-                <span
-                  key={t.tagId}
-                  className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700"
-                >
-                  {t.tag.name}
-                </span>
-              ))}
-            </div>
-            <ActionButtons
-              restaurantId={dish.restaurantId}
-              lat={dish.restaurant.latitude}
-              lon={dish.restaurant.longitude}
-            />
-            <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5">
-              <p className="text-sm font-medium text-zinc-500">Restaurant</p>
-              <Link
-                href={`/restaurant/${dish.restaurantId}`}
-                className="mt-1 text-lg font-semibold text-zinc-900 hover:underline"
-              >
-                {dish.restaurant.name}
-              </Link>
-              <p className="mt-1 text-sm text-zinc-600">
-                {dish.restaurant.address}
-              </p>
-            </div>
+                ? `${Math.round(dish.distanceKm * 1000)}m`
+                : `${dish.distanceKm.toFixed(1)}km`}
+            </span>
+            <span className="h-1 w-1 rounded-full bg-zinc-300" aria-hidden />
+            <span>{dish.category.name}</span>
           </div>
         </div>
 
+        {/* Tags */}
+        {dish.tags.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-1.5">
+            {dish.tags.map((t) => (
+              <span
+                key={t.tagId}
+                className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-600"
+              >
+                {t.tag.name}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Description */}
+        {dish.description && (
+          <p className="mt-5 text-[15px] leading-relaxed text-zinc-600">
+            {dish.description}
+          </p>
+        )}
+
+        {/* Action buttons */}
+        <ActionButtons
+          restaurantId={dish.restaurantId}
+          lat={dish.restaurant.latitude}
+          lon={dish.restaurant.longitude}
+        />
+
+        {/* Restaurant card */}
+        <Link
+          href={`/restaurant/${dish.restaurantId}`}
+          className="mt-6 flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/[0.04] transition hover:shadow-md"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-zinc-600">
+            {dish.restaurant.name.charAt(0)}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-[var(--text)]">{dish.restaurant.name}</p>
+            <p className="truncate text-xs text-zinc-500">{dish.restaurant.address}</p>
+          </div>
+          <svg className="ml-auto h-4 w-4 shrink-0 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+            <path d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+
+        {/* Related */}
         {related.length > 0 && (
-          <div className="mt-12 border-t border-zinc-200 pt-10">
-            <h2 className="text-xl font-semibold text-zinc-900">Vergelijkbaar</h2>
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10">
+            <h2 className="mb-4 text-lg font-semibold text-[var(--text)]">Meer zoals dit</h2>
+            <div className="grid grid-cols-2 gap-3">
               {related.map((d) => (
                 <DishCard key={d.id} dish={d} />
               ))}

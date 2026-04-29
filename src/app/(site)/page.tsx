@@ -10,12 +10,9 @@ type SearchParams = {
   radius?: string;
 };
 
-function HomeFeedBarFallback() {
+function BarFallback() {
   return (
-    <div
-      className="fixed inset-x-0 bottom-0 z-40 h-40 border-t border-zinc-200/90 bg-[var(--bg)]/80 backdrop-blur-sm"
-      aria-hidden
-    />
+    <div className="fixed inset-x-0 bottom-0 z-40 h-44 bg-white/80 backdrop-blur-sm" aria-hidden />
   );
 }
 
@@ -48,43 +45,35 @@ export default async function HomePage({
   }
 
   return (
-    <div className="min-h-dvh bg-[var(--bg)] pb-[min(32rem,78vh)]">
-      <p className="sr-only">
-        Gerechtenfeed,{" "}
-        {radiusKm < 1
-          ? `binnen ${Math.round(radiusKm * 1000)} meter`
-          : `binnen ${radiusKm} kilometer`}
-        {q ? `, zoekopdracht ${q}` : ""}, ten opzichte van Amsterdam.
-      </p>
-
+    <div className="min-h-dvh bg-[var(--bg)] pb-56">
       {dbError && (
-        <div className="mx-3 my-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-900 sm:mx-4">
-          <p className="font-medium">Geen databaseverbinding.</p>
-          <p className="mt-1 text-xs opacity-80">
-            Controleer <code className="rounded bg-white/70 px-1">DATABASE_URL</code>{" "}
-            op Vercel.
-          </p>
+        <div className="mx-4 mt-3 rounded-xl bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
+          Geen databaseverbinding.
         </div>
       )}
 
       {!dbError && dishes.length === 0 && (
-        <div className="flex min-h-[40vh] items-center justify-center px-4 text-center">
-          <p className="text-sm text-zinc-500">
-            Geen gerechten binnen deze afstand
-            {q ? " en zoekterm" : ""}. Verschuif de afstand of wis het zoekveld.
-          </p>
+        <div className="flex min-h-[50vh] items-center justify-center px-6 text-center">
+          <div>
+            <p className="text-sm text-zinc-500">
+              Geen gerechten gevonden{q ? ` voor "${q}"` : ""}.
+            </p>
+            <p className="mt-1 text-xs text-zinc-400">
+              Verschuif de afstand of wis het zoekveld.
+            </p>
+          </div>
         </div>
       )}
 
       {!dbError && dishes.length > 0 && (
-        <div className="grid grid-cols-3 gap-0.5 sm:gap-0.5">
+        <div className="grid grid-cols-3 gap-px bg-zinc-200/60">
           {dishes.map((d, i) => (
             <DishFeedTile key={d.id} dish={d} priority={i < 9} />
           ))}
         </div>
       )}
 
-      <Suspense fallback={<HomeFeedBarFallback />}>
+      <Suspense fallback={<BarFallback />}>
         <HomeBottomBar defaultQ={q} />
       </Suspense>
     </div>

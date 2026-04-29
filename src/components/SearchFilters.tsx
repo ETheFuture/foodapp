@@ -26,7 +26,6 @@ export function SearchFilters({
   const [categoryId, setCategoryId] = useState(initial.categoryId);
   const [maxDistance, setMaxDistance] = useState(initial.maxDistance);
   const [maxPrice, setMaxPrice] = useState(initial.maxPrice);
-  const [onlyOpen, setOnlyOpen] = useState(initial.onlyOpen);
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -35,99 +34,89 @@ export function SearchFilters({
     if (categoryId) sp.set("categoryId", categoryId);
     if (maxDistance) sp.set("maxDistance", maxDistance);
     if (maxPrice) sp.set("maxPrice", maxPrice);
-    if (onlyOpen) sp.set("open", "1");
     const qs = sp.toString();
     router.push(qs ? `${pathname}?${qs}` : pathname);
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="space-y-4 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm sm:p-5"
-    >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="sm:col-span-2">
-          <label
-            className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500"
-            htmlFor="q"
+    <form onSubmit={onSubmit} className="space-y-3">
+      {/* Search input */}
+      <div className="relative">
+        <svg
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden
+        >
+          <circle cx="10.5" cy="10.5" r="5.5" />
+          <path d="M15 15l6 6" />
+        </svg>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Zoek gerecht of keuken…"
+          className="h-11 w-full rounded-xl border-0 bg-zinc-100 pl-9 pr-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:bg-zinc-50 focus:ring-2 focus:ring-[var(--accent)]/25 focus:outline-hidden"
+        />
+      </div>
+
+      {/* Category pills */}
+      {categories.length > 0 && (
+        <div className="flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <button
+            type="button"
+            onClick={() => setCategoryId("")}
+            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition ${
+              !categoryId
+                ? "bg-[var(--text)] text-white"
+                : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+            }`}
           >
-            Waar heb je zin in?
-          </label>
-          <input
-            id="q"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Gerecht of trefwoord"
-            className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-0 focus:outline-hidden"
-          />
+            Alles
+          </button>
+          {categories.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setCategoryId(c.id === categoryId ? "" : c.id)}
+              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                categoryId === c.id
+                  ? "bg-[var(--text)] text-white"
+                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+              }`}
+            >
+              {c.name}
+            </button>
+          ))}
         </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500">
-            Categorie
-          </label>
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm"
-          >
-            <option value="">Alles</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label
-            className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500"
-            htmlFor="dmax"
-          >
-            Max. afstand (km)
-          </label>
+      )}
+
+      {/* Compact filters row */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 rounded-lg bg-zinc-100 px-2.5 py-1.5">
+          <span className="text-[11px] text-zinc-500">Max</span>
           <input
-            id="dmax"
             type="number"
             min={1}
             max={50}
             value={maxDistance}
             onChange={(e) => setMaxDistance(e.target.value)}
-            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm"
+            className="w-8 bg-transparent text-xs font-medium text-zinc-800 focus:outline-hidden"
           />
+          <span className="text-[11px] text-zinc-500">km</span>
         </div>
-        <div>
-          <label
-            className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500"
-            htmlFor="pmax"
-          >
-            Max. prijs (€)
-          </label>
+        <div className="flex items-center gap-1.5 rounded-lg bg-zinc-100 px-2.5 py-1.5">
+          <span className="text-[11px] text-zinc-500">Max</span>
+          <span className="text-xs text-zinc-500">€</span>
           <input
-            id="pmax"
             type="number"
             min={5}
             max={200}
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
-            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm"
+            className="w-10 bg-transparent text-xs font-medium text-zinc-800 focus:outline-hidden"
           />
         </div>
-        <div className="flex items-end pb-0.5">
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-zinc-600">
-            <input
-              type="checkbox"
-              checked={onlyOpen}
-              onChange={(e) => setOnlyOpen(e.target.checked)}
-              className="rounded border-zinc-300"
-            />
-            Open nu (MVP: altijd aan)
-          </label>
-        </div>
-      </div>
-      <div className="flex flex-wrap gap-2">
         <button
           type="submit"
-          className="rounded-full bg-[var(--text)] px-5 py-2 text-sm font-medium text-white"
+          className="ml-auto h-8 rounded-lg bg-[var(--accent)] px-4 text-xs font-semibold text-white transition hover:opacity-90"
         >
           Zoeken
         </button>
@@ -138,12 +127,11 @@ export function SearchFilters({
             setCategoryId("");
             setMaxDistance("10");
             setMaxPrice("80");
-            setOnlyOpen(false);
             router.push("/search");
           }}
-          className="rounded-full border border-zinc-200 px-5 py-2 text-sm text-zinc-600"
+          className="h-8 rounded-lg border border-zinc-200 px-3 text-xs text-zinc-500 hover:bg-zinc-50"
         >
-            Reset
+          Reset
         </button>
       </div>
     </form>
