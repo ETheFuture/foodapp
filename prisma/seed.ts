@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { dishNamesByCategory, imagePool } from "./seed-dishes";
+import { dishNamesByCategory, imagePool, photoDishes } from "./seed-dishes";
 
 const prisma = new PrismaClient();
 
@@ -230,39 +230,76 @@ async function main() {
     ),
   );
 
-  const dishList = buildDishList();
-  let imageIdx = 0;
-  for (let dishIndex = 0; dishIndex < dishList.length; dishIndex += 1) {
-    const { name: dName, categoryName } = dishList[dishIndex]!;
-    const cat = categoryByName[categoryName];
+  // ── Phase 1: seed the 23 dishes that have real photos ──
+  let totalDishes = 0;
+  const usedNames = new Set<string>();
+
+  for (let i = 0; i < photoDishes.length; i++) {
+    const pd = photoDishes[i]!;
+    const cat = categoryByName[pd.category];
     if (!cat) continue;
-    const restaurant = restRows[dishIndex % restRows.length]!;
-    const base = 6 + (dName.length % 5) * 0.5 + (dishIndex % 4);
-    const price = Math.round((base + Math.sin(dishIndex) * 2) * 10) / 10;
-    const isFeatured = dishIndex % 5 === 0;
+    const restaurant = restRows[i % restRows.length]!;
+    const base = 8 + (pd.name.length % 5) * 0.5 + (i % 4);
+    const price = Math.round((base + Math.sin(i) * 2) * 10) / 10;
+    const isFeatured = i < 12;
+
+    const dish = await prisma.dish.create({
+      data: {
+        name: pd.name,
+        description: `${pd.name} — huisbereiding bij ${restaurant.name}.`,
+        price,
+        categoryId: cat.id,
+        restaurantId: restaurant.id,
+        isAvailable: true,
+        isFeatured,
+      },
+    });
+
+    await prisma.dishImage.create({
+      data: { dishId: dish.id, imageUrl: pd.image, isMain: true },
+    });
+
     const tags = (
       [
         "Huisgemaakt",
-        dishIndex % 3 === 0 ? "Vegetarisch" : null,
-        dishIndex % 7 === 0 ? "Pittig" : null,
-        dishIndex % 11 === 0 ? "Vegan" : null,
+        i % 3 === 0 ? "Vegetarisch" : null,
+        i % 7 === 0 ? "Pittig" : null,
       ] as (string | null)[]
     )
       .filter((x): x is string => Boolean(x))
       .map((t) => tagByName[t])
       .filter(Boolean) as { id: string }[];
 
-    const desc = `Signature bereiding — ${dName} bij ${restaurant.name}. Foto- en smaakfokus.`;
+    for (const t of tags) {
+      await prisma.dishTag.create({ data: { dishId: dish.id, tagId: t.id } });
+    }
+
+    usedNames.add(pd.name);
+    totalDishes++;
+  }
+
+  // ── Phase 2: fill up remaining slots with generated names + local photo pool ──
+  const dishList = buildDishList();
+  let imageIdx = 0;
+  for (const { name: dName, categoryName } of dishList) {
+    if (totalDishes >= TARGET_DISHES) break;
+    if (usedNames.has(dName)) continue;
+
+    const cat = categoryByName[categoryName];
+    if (!cat) continue;
+    const restaurant = restRows[totalDishes % restRows.length]!;
+    const base = 6 + (dName.length % 5) * 0.5 + (totalDishes % 4);
+    const price = Math.round((base + Math.sin(totalDishes) * 2) * 10) / 10;
 
     const dish = await prisma.dish.create({
       data: {
         name: dName,
-        description: desc,
+        description: `Signature bereiding — ${dName} bij ${restaurant.name}.`,
         price,
         categoryId: cat.id,
         restaurantId: restaurant.id,
         isAvailable: true,
-        isFeatured,
+        isFeatured: false,
       },
     });
 
@@ -273,22 +310,25 @@ async function main() {
         isMain: true,
       },
     });
-    if (dishIndex % 4 === 0) {
-      imageIdx += 1;
-      await prisma.dishImage.create({
-        data: {
-          dishId: dish.id,
-          imageUrl: imagePool[(imageIdx + 1) % imagePool.length]!,
-          isMain: false,
-        },
-      });
-    }
+
+    const tags = (
+      [
+        "Huisgemaakt",
+        totalDishes % 3 === 0 ? "Vegetarisch" : null,
+        totalDishes % 7 === 0 ? "Pittig" : null,
+      ] as (string | null)[]
+    )
+      .filter((x): x is string => Boolean(x))
+      .map((t) => tagByName[t])
+      .filter(Boolean) as { id: string }[];
+
     for (const t of tags) {
-      await prisma.dishTag.create({
-        data: { dishId: dish.id, tagId: t.id },
-      });
+      await prisma.dishTag.create({ data: { dishId: dish.id, tagId: t.id } });
     }
-    imageIdx += 1;
+
+    usedNames.add(dName);
+    totalDishes++;
+    imageIdx++;
   }
 
   const count = await prisma.dish.count();

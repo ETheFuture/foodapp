@@ -149,24 +149,61 @@ export const dishNamesByCategory: Record<string, string[]> = {
 };
 
 export const imagePool = [
-  "https://images.unsplash.com/photo-1513104890138-7c749fd15c29?w=1200&q=80",
-  "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=1200&q=80",
-  "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200&q=80",
-  "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&q=80",
-  "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=1200&q=80",
-  "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=1200&q=80",
-  "https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=1200&q=80",
-  "https://images.unsplash.com/photo-1608039829572-1f7d703ad6f5?w=1200&q=80",
-  "https://images.unsplash.com/photo-1562158146-fbed99e0de1a?w=1200&q=80",
-  "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=1200&q=80",
-  "https://images.unsplash.com/photo-1504753793650-d4a2b783c15e?w=1200&q=80",
-  "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=1200&q=80",
-  "https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=1200&q=80",
-  "https://images.unsplash.com/photo-1599487488170-d11ec9c177f0?w=1200&q=80",
-  "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=1200&q=80",
-  "https://images.unsplash.com/photo-1604908177524-0e90ac8a6d9c?w=1200&q=80",
-  "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=1200&q=80",
-  "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=1200&q=80",
-  "https://images.unsplash.com/photo-1506084868230-bb2d1c130f9c?w=1200&q=80",
-  "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&q=80",
+  "/dishes/01-grilled-tosti.png",
+  "/dishes/02-empanadas.png",
+  "/dishes/03-friet.png",
+  "/dishes/04-fish-tacos.png",
+  "/dishes/05-sushi-platter.png",
+  "/dishes/06-paneer-masala.png",
+  "/dishes/07-beef-pide.png",
+  "/dishes/08-loaded-satay.png",
+  "/dishes/09-saag-paneer.png",
+  "/dishes/10-shrimp-tacos.png",
+  "/dishes/11-butter-chicken.png",
+  "/dishes/12-beef-medallions.png",
+  "/dishes/13-hariyali-tikka.png",
+  "/dishes/14-fruitbord.png",
+  "/dishes/15-fettuccine.png",
+  "/dishes/16-flatbread-naan.png",
+  "/dishes/17-loempia.png",
+  "/dishes/18-pizza-margherita.png",
+  "/dishes/19-loaded-hotdog.png",
+  "/dishes/20-couscous-bowl.png",
+  "/dishes/21-arancini-platter.png",
+  "/dishes/22-honey-cake.png",
+  "/dishes/23-paneer-masala-2.png",
+];
+
+/**
+ * 23 explicit dishes with their assigned local photo, dish name, and category.
+ * These are seeded first — the rest of the pool fills up to TARGET_DISHES.
+ */
+export const photoDishes: {
+  image: string;
+  name: string;
+  category: string;
+}[] = [
+  { image: "/dishes/01-grilled-tosti.png", name: "Croque Monsieur", category: "Ontbijt" },
+  { image: "/dishes/02-empanadas.png", name: "Empanadas de Carne", category: "Tacos" },
+  { image: "/dishes/03-friet.png", name: "Friet Speciaal", category: "Burgers" },
+  { image: "/dishes/04-fish-tacos.png", name: "Baja Fish Tacos", category: "Tacos" },
+  { image: "/dishes/05-sushi-platter.png", name: "Sashimi Platter", category: "Sushi" },
+  { image: "/dishes/06-paneer-masala.png", name: "Paneer Tikka Masala", category: "Indisch" },
+  { image: "/dishes/07-beef-pide.png", name: "Turkse Pide met Rund", category: "Midden" },
+  { image: "/dishes/08-loaded-satay.png", name: "Loaded Satay Fries", category: "Aziatisch" },
+  { image: "/dishes/09-saag-paneer.png", name: "Saag Paneer", category: "Indisch" },
+  { image: "/dishes/10-shrimp-tacos.png", name: "Shrimp Tacos", category: "Tacos" },
+  { image: "/dishes/11-butter-chicken.png", name: "Butter Chicken & Naan", category: "Indisch" },
+  { image: "/dishes/12-beef-medallions.png", name: "Biefstuk Medaillons", category: "Steak" },
+  { image: "/dishes/13-hariyali-tikka.png", name: "Hariyali Tikka", category: "Indisch" },
+  { image: "/dishes/14-fruitbord.png", name: "Vers Fruitbord", category: "Salade" },
+  { image: "/dishes/15-fettuccine.png", name: "Fettuccine Alfredo", category: "Pasta" },
+  { image: "/dishes/16-flatbread-naan.png", name: "Garlic Naan & Dips", category: "Indisch" },
+  { image: "/dishes/17-loempia.png", name: "Vietnamese Loempia's", category: "Aziatisch" },
+  { image: "/dishes/18-pizza-margherita.png", name: "Pizza Margherita", category: "Pizza" },
+  { image: "/dishes/19-loaded-hotdog.png", name: "Loaded Hotdog", category: "Burgers" },
+  { image: "/dishes/20-couscous-bowl.png", name: "Couscous Bowl", category: "Midden" },
+  { image: "/dishes/21-arancini-platter.png", name: "Arancini Trio", category: "Pasta" },
+  { image: "/dishes/22-honey-cake.png", name: "Honey Layer Cake", category: "Ontbijt" },
+  { image: "/dishes/23-paneer-masala-2.png", name: "Kadhai Paneer", category: "Indisch" },
 ];
