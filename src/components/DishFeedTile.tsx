@@ -6,33 +6,40 @@ type Props = { dish: DishListItem; priority?: boolean };
 
 export function DishFeedTile({ dish, priority = false }: Props) {
   const main = dish.images[0];
-  const href = `/dish/${dish.id}`;
 
   return (
-    <Link href={href} className="group relative block aspect-square overflow-hidden">
+    <Link
+      href={`/dish/${dish.id}`}
+      className="group relative block aspect-square overflow-hidden rounded-2xl bg-zinc-100"
+    >
       {main ? (
         <Image
           src={main.imageUrl}
           alt={dish.name}
           fill
-          className="object-cover transition duration-300 group-hover:scale-105"
-          sizes="(max-width: 640px) 33vw, 25vw"
+          className="object-cover transition duration-500 ease-out group-hover:scale-[1.04]"
+          sizes="(max-width: 640px) 32vw, (max-width: 1024px) 28vw, 20vw"
           priority={priority}
         />
       ) : (
-        <div className="flex h-full items-center justify-center bg-zinc-100 text-xs text-zinc-400">
+        <div className="flex h-full items-center justify-center text-xs text-zinc-300">
           Geen foto
         </div>
       )}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" aria-hidden />
-      <div className="absolute inset-x-0 bottom-0 px-2 pb-2 pt-6">
-        <p className="line-clamp-1 text-[13px] font-semibold leading-tight text-white drop-shadow-sm">
+
+      {/* Gradient overlay — only at the bottom */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+        aria-hidden
+      />
+
+      {/* Text label */}
+      <div className="absolute inset-x-0 bottom-0 p-2.5 sm:p-3">
+        <p className="line-clamp-1 text-[13px] font-semibold leading-snug text-white drop-shadow-md sm:text-sm">
           {dish.name}
         </p>
-        <p className="mt-0.5 text-[11px] font-medium text-white/75">
-          €{dish.price.toFixed(0)} · {dish.distanceKm < 1
-            ? `${Math.round(dish.distanceKm * 1000)}m`
-            : `${dish.distanceKm.toFixed(1)}km`}
+        <p className="mt-0.5 text-[11px] text-white/70 sm:text-xs">
+          €{dish.price.toFixed(0)}
         </p>
       </div>
     </Link>
