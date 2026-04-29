@@ -184,12 +184,17 @@ function buildDishList(): { name: string; categoryName: string }[] {
 }
 
 async function main() {
-  const n = await prisma.dish.count();
-  if (n > 0) {
-    console.log(
-      `Seed overgeslagen: ${n} gerecht(en) staan al in de database (idempotent).`,
-    );
-    return;
+  const existingCount = await prisma.dish.count();
+  if (existingCount > 0) {
+    console.log(`Clearing ${existingCount} existing dishes for fresh re-seed with local photos…`);
+    await prisma.dishTag.deleteMany();
+    await prisma.dishImage.deleteMany();
+    await prisma.dish.deleteMany();
+    await prisma.openingHour.deleteMany();
+    await prisma.restaurant.deleteMany();
+    await prisma.tag.deleteMany();
+    await prisma.category.deleteMany();
+    console.log("Old data cleared.");
   }
 
   const categoryEntries = await Promise.all(
