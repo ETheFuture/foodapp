@@ -13,3 +13,34 @@
   --color-background: var(--bg);
   --color-foreground: var(--text);
 }
+
+/* Home feed: afstandsschuif (range) */
+.feed-distance-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  background: var(--accent);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  margin-top: -0.35rem;
+}
+.feed-distance-slider::-webkit-slider-runnable-track {
+  height: 0.25rem;
+  border-radius: 9999px;
+  background: rgb(228 228 231);
+}
+.feed-distance-slider::-moz-range-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  background: var(--accent);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+.feed-distance-slider::-moz-range-track {
+  height: 0.25rem;
+  border-radius: 9999px;
+  background: rgb(228 228 231);
+}
