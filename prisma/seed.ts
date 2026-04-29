@@ -190,7 +190,7 @@ async function main() {
     await prisma.dishTag.deleteMany();
     await prisma.dishImage.deleteMany();
     await prisma.dish.deleteMany();
-    await prisma.openingHour.deleteMany();
+    await prisma.user.deleteMany();
     await prisma.restaurant.deleteMany();
     await prisma.tag.deleteMany();
     await prisma.category.deleteMany();

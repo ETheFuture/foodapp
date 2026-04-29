@@ -34,7 +34,12 @@ run("npx prisma generate");
 
 if (hasDatabaseUrl) {
   run("npx prisma migrate deploy");
-  run("npx prisma db seed");
+  try {
+    execSync("npx prisma db seed", { stdio: "inherit", env: process.env });
+  } catch (e) {
+    console.log("[build] Seed failed (non-fatal) — site builds without seed data.");
+    console.log("[build] Seed error:", e.message || e);
+  }
 } else {
   console.log("[build] Overgeslagen: prisma migrate deploy && prisma db seed");
 }
