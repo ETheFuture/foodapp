@@ -1,11 +1,12 @@
 import { Suspense } from "react";
 import { AMSTERDAM_DEFAULT } from "@/lib/geo";
 import { parseHomeRadiusParam } from "@/lib/home-radius";
-import { searchDishes } from "@/lib/data/dishes";
+import { searchDishes, getCategories } from "@/lib/data/dishes";
 import { DishFeedTile } from "@/components/DishFeedTile";
 import { HomeBottomBar } from "@/components/HomeBottomBar";
+import { CategoryScroller } from "@/components/CategoryScroller";
 
-type SP = { q?: string; radius?: string };
+type SP = { q?: string; radius?: string; cat?: string };
 
 export default async function HomePage({
   searchParams,
@@ -16,41 +17,60 @@ export default async function HomePage({
   const { lat, lon } = AMSTERDAM_DEFAULT;
   const q = (p.q ?? "").trim();
   const radiusKm = parseHomeRadiusParam(p.radius);
+  const activeCat = p.cat ?? "";
 
   let dishes: Awaited<ReturnType<typeof searchDishes>> = [];
+  let categories: Awaited<ReturnType<typeof getCategories>> = [];
   let err: string | null = null;
   try {
-    dishes = await searchDishes({
-      q,
-      categoryId: null,
-      maxDistanceKm: radiusKm,
-      maxPrice: 200,
-      onlyOpen: false,
-      userLat: lat,
-      userLon: lon,
-    });
+    [dishes, categories] = await Promise.all([
+      searchDishes({
+        q,
+        categoryId: activeCat || null,
+        maxDistanceKm: radiusKm,
+        maxPrice: 200,
+        onlyOpen: false,
+        userLat: lat,
+        userLon: lon,
+      }),
+      getCategories(),
+    ]);
   } catch (e) {
     err = e instanceof Error ? e.message : "fout";
     console.error("[home]", err);
   }
 
   return (
-    <main className="min-h-dvh bg-[#1c1c1e] pb-44 sm:pb-48">
+    <main className="min-h-dvh bg-[var(--bg)] pb-44 sm:pb-48">
+      {/* Category scroller */}
+      {!err && categories.length > 0 && (
+        <div className="px-4 pt-5 sm:px-6">
+          <div className="mx-auto max-w-3xl">
+            <div className="mb-1 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-[var(--text)]">All Categories</h2>
+            </div>
+            <Suspense fallback={null}>
+              <CategoryScroller categories={categories} activeCat={activeCat} />
+            </Suspense>
+          </div>
+        </div>
+      )}
+
       {err && (
         <div className="px-4 pt-4">
-          <div className="rounded-2xl bg-white/10 px-4 py-3 text-sm text-white/70">
+          <div className="mx-auto max-w-3xl rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
             Geen verbinding met database.
           </div>
         </div>
       )}
 
       {!err && dishes.length === 0 && (
-        <div className="flex min-h-[60vh] items-center justify-center px-8 text-center">
+        <div className="flex min-h-[50vh] items-center justify-center px-8 text-center">
           <div>
-            <p className="text-base font-medium text-white/60">
+            <p className="text-base font-medium text-zinc-500">
               {q ? `Geen resultaten voor "${q}"` : "Geen gerechten in de buurt"}
             </p>
-            <p className="mt-2 text-sm text-white/40">
+            <p className="mt-2 text-sm text-zinc-400">
               Verschuif de afstand of pas je zoekopdracht aan.
             </p>
           </div>
@@ -58,8 +78,8 @@ export default async function HomePage({
       )}
 
       {!err && dishes.length > 0 && (
-        <div className="mx-auto w-full max-w-3xl px-1.5 pt-1.5 sm:px-3 sm:pt-3">
-          <div className="grid grid-cols-3 gap-[3px] sm:gap-1.5 lg:gap-2">
+        <div className="mx-auto w-full max-w-3xl px-3 pt-4 sm:px-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-3">
             {dishes.map((d, i) => (
               <DishFeedTile key={d.id} dish={d} priority={i < 12} />
             ))}

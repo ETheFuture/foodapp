@@ -13,6 +13,8 @@ type Initial = {
   onlyOpen: boolean;
 };
 
+const POPULAR_KEYWORDS = ["Burger", "Pizza", "Sushi", "Pasta", "Ramen", "Salade"];
+
 export function SearchFilters({
   initial,
   categories,
@@ -27,23 +29,29 @@ export function SearchFilters({
   const [maxDistance, setMaxDistance] = useState(initial.maxDistance);
   const [maxPrice, setMaxPrice] = useState(initial.maxPrice);
 
-  function onSubmit(e: FormEvent) {
-    e.preventDefault();
+  function navigate(overrides?: Partial<{ q: string; categoryId: string }>) {
     const sp = new URLSearchParams();
-    if (q.trim()) sp.set("q", q.trim());
-    if (categoryId) sp.set("categoryId", categoryId);
+    const fq = overrides?.q ?? q;
+    const fCat = overrides?.categoryId ?? categoryId;
+    if (fq.trim()) sp.set("q", fq.trim());
+    if (fCat) sp.set("categoryId", fCat);
     if (maxDistance) sp.set("maxDistance", maxDistance);
     if (maxPrice) sp.set("maxPrice", maxPrice);
     const qs = sp.toString();
     router.push(qs ? `${pathname}?${qs}` : pathname);
   }
 
+  function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    navigate();
+  }
+
   return (
-    <form onSubmit={onSubmit} className="space-y-3">
+    <form onSubmit={onSubmit} className="space-y-4">
       {/* Search input */}
       <div className="relative">
         <svg
-          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+          className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400"
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden
         >
           <circle cx="10.5" cy="10.5" r="5.5" />
@@ -53,20 +61,48 @@ export function SearchFilters({
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Zoek gerecht of keuken…"
-          className="h-11 w-full rounded-xl border-0 bg-zinc-100 pl-9 pr-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:bg-zinc-50 focus:ring-2 focus:ring-[var(--accent)]/25 focus:outline-hidden"
+          className="h-12 w-full rounded-2xl border-0 bg-white pl-11 pr-4 text-sm text-[var(--text)] shadow-sm ring-1 ring-black/[0.04] placeholder:text-zinc-400 focus:ring-2 focus:ring-[var(--accent)]/30 focus:outline-hidden"
         />
+        {q && (
+          <button
+            type="button"
+            onClick={() => { setQ(""); navigate({ q: "" }); }}
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* Recent Keywords */}
+      <div>
+        <p className="mb-2 text-sm font-semibold text-[var(--text)]">Recent Keywords</p>
+        <div className="flex flex-wrap gap-2">
+          {POPULAR_KEYWORDS.map((kw) => (
+            <button
+              key={kw}
+              type="button"
+              onClick={() => { setQ(kw); navigate({ q: kw }); }}
+              className="rounded-full border border-zinc-200 bg-white px-3.5 py-1.5 text-xs font-medium text-zinc-600 transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+            >
+              {kw}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Category pills */}
       {categories.length > 0 && (
-        <div className="flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="category-scroll flex gap-2 pb-1">
           <button
             type="button"
-            onClick={() => setCategoryId("")}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition ${
+            onClick={() => { setCategoryId(""); navigate({ categoryId: "" }); }}
+            className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
               !categoryId
-                ? "bg-[var(--text)] text-white"
-                : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                ? "bg-[var(--accent)] text-white shadow-md shadow-orange-200"
+                : "bg-white text-zinc-600 ring-1 ring-black/[0.04] hover:ring-[var(--accent)]"
             }`}
           >
             Alles
@@ -75,11 +111,15 @@ export function SearchFilters({
             <button
               key={c.id}
               type="button"
-              onClick={() => setCategoryId(c.id === categoryId ? "" : c.id)}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition ${
+              onClick={() => {
+                const next = c.id === categoryId ? "" : c.id;
+                setCategoryId(next);
+                navigate({ categoryId: next });
+              }}
+              className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
                 categoryId === c.id
-                  ? "bg-[var(--text)] text-white"
-                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                  ? "bg-[var(--accent)] text-white shadow-md shadow-orange-200"
+                  : "bg-white text-zinc-600 ring-1 ring-black/[0.04] hover:ring-[var(--accent)]"
               }`}
             >
               {c.name}
@@ -90,7 +130,7 @@ export function SearchFilters({
 
       {/* Compact filters row */}
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1.5 rounded-lg bg-zinc-100 px-2.5 py-1.5">
+        <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 ring-1 ring-black/[0.04]">
           <span className="text-[11px] text-zinc-500">Max</span>
           <input
             type="number"
@@ -98,40 +138,26 @@ export function SearchFilters({
             max={50}
             value={maxDistance}
             onChange={(e) => setMaxDistance(e.target.value)}
-            className="w-8 bg-transparent text-xs font-medium text-zinc-800 focus:outline-hidden"
+            className="w-8 bg-transparent text-xs font-semibold text-[var(--text)] focus:outline-hidden"
           />
           <span className="text-[11px] text-zinc-500">km</span>
         </div>
-        <div className="flex items-center gap-1.5 rounded-lg bg-zinc-100 px-2.5 py-1.5">
-          <span className="text-[11px] text-zinc-500">Max</span>
-          <span className="text-xs text-zinc-500">€</span>
+        <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 ring-1 ring-black/[0.04]">
+          <span className="text-[11px] text-zinc-500">Max €</span>
           <input
             type="number"
             min={5}
             max={200}
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
-            className="w-10 bg-transparent text-xs font-medium text-zinc-800 focus:outline-hidden"
+            className="w-10 bg-transparent text-xs font-semibold text-[var(--text)] focus:outline-hidden"
           />
         </div>
         <button
           type="submit"
-          className="ml-auto h-8 rounded-lg bg-[var(--accent)] px-4 text-xs font-semibold text-white transition hover:opacity-90"
+          className="ml-auto h-9 rounded-xl bg-[var(--accent)] px-5 text-xs font-semibold text-white shadow-md shadow-orange-200 transition hover:opacity-90"
         >
           Zoeken
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setQ("");
-            setCategoryId("");
-            setMaxDistance("10");
-            setMaxPrice("80");
-            router.push("/search");
-          }}
-          className="h-8 rounded-lg border border-zinc-200 px-3 text-xs text-zinc-500 hover:bg-zinc-50"
-        >
-          Reset
         </button>
       </div>
     </form>

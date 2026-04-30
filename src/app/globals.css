@@ -2,10 +2,11 @@
 
 :root {
   --bg: #fafaf9;
-  --text: #0c0a09;
+  --text: #1a1a2e;
   --muted: #737373;
   --border: #e7e5e4;
-  --accent: #c41e3a;
+  --accent: #FF6B00;
+  --accent-light: #FFF4EB;
 }
 
 @theme inline {
@@ -23,11 +24,19 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Slider — smaller, tighter */
+.category-scroll {
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.category-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 .feed-slider::-webkit-slider-runnable-track {
   height: 3px;
   border-radius: 9999px;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.08);
 }
 .feed-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -44,7 +53,7 @@ html {
 .feed-slider::-moz-range-track {
   height: 3px;
   border-radius: 9999px;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.08);
 }
 .feed-slider::-moz-range-thumb {
   width: 18px;

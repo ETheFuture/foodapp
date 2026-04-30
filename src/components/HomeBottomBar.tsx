@@ -46,10 +46,10 @@ export function HomeBottomBar({ defaultQ }: Props) {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
-      <div className="mx-2 rounded-2xl border border-white/20 bg-white/85 shadow-xl shadow-black/8 backdrop-blur-2xl sm:mx-auto sm:max-w-sm">
+      <div className="mx-2 rounded-2xl border border-zinc-200/60 bg-white/92 shadow-xl shadow-black/6 backdrop-blur-2xl sm:mx-auto sm:max-w-sm">
         <div className="px-3 pb-1.5 pt-2">
 
-          {/* Search — compact */}
+          {/* Search */}
           <form onSubmit={submit}>
             <div className="relative">
               <svg className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden>
@@ -59,7 +59,7 @@ export function HomeBottomBar({ defaultQ }: Props) {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Zoek gerecht…"
-                className="h-8 w-full rounded-full border-0 bg-zinc-100/70 pl-8 pr-16 text-[13px] text-zinc-900 placeholder:text-zinc-400 focus:bg-white focus:ring-1 focus:ring-[var(--accent)]/30 focus:outline-hidden"
+                className="h-8 w-full rounded-full border-0 bg-zinc-100 pl-8 pr-16 text-[13px] text-[var(--text)] placeholder:text-zinc-400 focus:bg-white focus:ring-1 focus:ring-[var(--accent)]/30 focus:outline-hidden"
                 autoComplete="off"
               />
               <button
@@ -72,7 +72,7 @@ export function HomeBottomBar({ defaultQ }: Props) {
             </div>
           </form>
 
-          {/* Slider — compact */}
+          {/* Slider */}
           <div className="mt-1.5 flex items-center gap-2">
             <span className="shrink-0 text-[10px] font-medium text-zinc-400">
               {LABELS[index]}
@@ -91,7 +91,7 @@ export function HomeBottomBar({ defaultQ }: Props) {
             </span>
           </div>
 
-          {/* Nav — compact icons */}
+          {/* Nav */}
           <nav className="mt-1 flex items-center justify-around" aria-label="Navigatie">
             <Tab href="/" icon="home" label="Feed" active />
             <Tab href="/search" icon="search" label="Zoek" />

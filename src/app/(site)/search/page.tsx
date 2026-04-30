@@ -17,10 +17,7 @@ export default async function SearchPage({
 }) {
   const p = await searchParams;
   const { lat, lon } = AMSTERDAM_DEFAULT;
-  const maxDistance = Math.min(
-    50,
-    Math.max(0.5, Number(p.maxDistance) || 25),
-  );
+  const maxDistance = Math.min(50, Math.max(0.5, Number(p.maxDistance) || 25));
   const maxPrice = Math.max(5, Math.min(200, Number(p.maxPrice) || 150));
 
   let dishes: Awaited<ReturnType<typeof searchDishes>> = [];
@@ -44,18 +41,18 @@ export default async function SearchPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-8 pt-4 sm:px-6">
-      <h1 className="text-xl font-semibold tracking-tight text-[var(--text)]">
-        Ontdekken
+    <div className="mx-auto w-full max-w-lg px-4 pb-8 pt-6 sm:px-6">
+      <h1 className="text-2xl font-bold tracking-tight text-[var(--text)]">
+        Search
       </h1>
 
       {dbError && (
-        <div className="mt-3 rounded-xl bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
+        <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
           Geen databaseverbinding.
         </div>
       )}
 
-      <div className="mt-4">
+      <div className="mt-5">
         <SearchFilters
           initial={{
             q: p.q ?? "",
@@ -68,15 +65,20 @@ export default async function SearchPage({
         />
       </div>
 
-      <p className="mt-5 text-xs text-zinc-400">
-        {dbError
-          ? "0 gerechten"
-          : `${dishes.length} ${dishes.length === 1 ? "gerecht" : "gerechten"}`}
-      </p>
+      {!dbError && (
+        <p className="mt-6 text-xs font-medium text-zinc-400">
+          {dishes.length} {dishes.length === 1 ? "gerecht" : "gerechten"}
+        </p>
+      )}
 
       {!dbError && dishes.length === 0 && (
         <div className="mt-8 flex flex-col items-center gap-2 py-12 text-center">
-          <p className="text-sm text-zinc-500">Geen resultaten.</p>
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-50">
+            <svg className="h-6 w-6 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+              <circle cx="10.5" cy="10.5" r="5.5" /><path d="M15 15l6 6" />
+            </svg>
+          </div>
+          <p className="text-sm font-medium text-zinc-500">Geen resultaten.</p>
           <p className="text-xs text-zinc-400">Vergroot de afstand of wis je zoekterm.</p>
         </div>
       )}
