@@ -6,11 +6,23 @@ import {
   HOME_RADIUS_STEPS_KM,
   homeRadiusStepIndex,
   parseHomeRadiusParam,
+  type HomeRadiusKm,
 } from "@/lib/home-radius";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition, FormEvent } from "react";
 
-type Props = { defaultQ: string };
+type Controlled = {
+  radiusKm: HomeRadiusKm;
+  onRadiusKm: (km: HomeRadiusKm) => void;
+  draftQ: string;
+  onDraftQChange: (s: string) => void;
+  onApplySearch: () => void;
+};
+
+type Props = {
+  defaultQ?: string;
+  controlled?: Controlled;
+};
 
 function toUrl(q: string, km: number) {
   const p = new URLSearchParams();
@@ -20,19 +32,24 @@ function toUrl(q: string, km: number) {
   return s ? `/?${s}` : "/";
 }
 
-export function HomeBottomBar({ defaultQ }: Props) {
+export function HomeBottomBar({ defaultQ = "", controlled }: Props) {
   const router = useRouter();
   const path = usePathname();
   const sp = useSearchParams();
   const [pending, go] = useTransition();
   const [q, setQ] = useState(defaultQ);
 
-  const km = parseHomeRadiusParam(sp.get("radius"));
+  const isControlled = Boolean(controlled);
+  const km = isControlled
+    ? controlled!.radiusKm
+    : parseHomeRadiusParam(sp.get("radius"));
   const index = homeRadiusStepIndex(km);
 
   useEffect(() => {
-    setQ(sp.get("q")?.trim() ?? "");
-  }, [sp]);
+    if (!isControlled) {
+      setQ(sp.get("q")?.trim() ?? "");
+    }
+  }, [sp, isControlled]);
 
   const nav = useCallback(
     (nq: string, nk: number) => {
@@ -43,12 +60,21 @@ export function HomeBottomBar({ defaultQ }: Props) {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
+    if (controlled) {
+      controlled.onApplySearch();
+      return;
+    }
     nav(q, HOME_RADIUS_STEPS_KM[index] ?? 1);
   };
 
   if (path !== "/") return null;
 
   const maxIdx = HOME_RADIUS_STEPS_KM.length - 1;
+
+  const displayQ = controlled ? controlled.draftQ : q;
+  const setDisplayQ = controlled
+    ? controlled.onDraftQChange
+    : setQ;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
@@ -61,15 +87,15 @@ export function HomeBottomBar({ defaultQ }: Props) {
                 <circle cx="10.5" cy="10.5" r="5.5" /><path d="M15 15l5.5 5.5" />
               </svg>
               <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
+                value={displayQ}
+                onChange={(e) => setDisplayQ(e.target.value)}
                 placeholder="Zoek gerecht…"
                 className="h-8 w-full rounded-full border-0 bg-zinc-100 pl-8 pr-16 text-[13px] text-[var(--text)] placeholder:text-zinc-400 focus:bg-white focus:ring-1 focus:ring-[var(--accent)]/30 focus:outline-hidden"
                 autoComplete="off"
               />
               <button
                 type="submit"
-                disabled={pending}
+                disabled={!isControlled && pending}
                 className="absolute right-0.5 top-0.5 h-7 rounded-full bg-[var(--accent)] px-3 text-[12px] font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
               >
                 Zoek
@@ -87,9 +113,14 @@ export function HomeBottomBar({ defaultQ }: Props) {
               max={maxIdx}
               step={1}
               value={index}
-              onChange={(e) =>
-                nav(q, HOME_RADIUS_STEPS_KM[Number(e.target.value)] ?? 1)
-              }
+              onChange={(e) => {
+                const rk = HOME_RADIUS_STEPS_KM[Number(e.target.value)] ?? 1;
+                if (controlled) {
+                  controlled.onRadiusKm(rk);
+                } else {
+                  nav(q, rk);
+                }
+              }}
               className="feed-slider h-5 min-w-0 flex-1 cursor-pointer appearance-none bg-transparent"
               aria-valuemin={0}
               aria-valuemax={maxIdx}

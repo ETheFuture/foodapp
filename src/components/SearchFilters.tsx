@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, useTransition, type FormEvent } from "react";
 
 type Cat = { id: string; name: string };
 
@@ -24,6 +24,7 @@ export function SearchFilters({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
   const [q, setQ] = useState(initial.q);
   const [categoryId, setCategoryId] = useState(initial.categoryId);
   const [maxDistance, setMaxDistance] = useState(initial.maxDistance);
@@ -38,7 +39,9 @@ export function SearchFilters({
     if (maxDistance) sp.set("maxDistance", maxDistance);
     if (maxPrice) sp.set("maxPrice", maxPrice);
     const qs = sp.toString();
-    router.push(qs ? `${pathname}?${qs}` : pathname);
+    startTransition(() => {
+      router.push(qs ? `${pathname}?${qs}` : pathname);
+    });
   }
 
   function onSubmit(e: FormEvent) {
@@ -156,9 +159,10 @@ export function SearchFilters({
         </div>
         <button
           type="submit"
-          className="ml-auto h-9 rounded-xl bg-[var(--accent)] px-5 text-xs font-semibold text-white shadow-md shadow-orange-200 transition hover:opacity-90"
+          disabled={isPending}
+          className="ml-auto h-9 rounded-xl bg-[var(--accent)] px-5 text-xs font-semibold text-white shadow-md shadow-orange-200 transition hover:opacity-90 disabled:opacity-60"
         >
-          Zoeken
+          {isPending ? "…" : "Zoeken"}
         </button>
       </div>
     </form>

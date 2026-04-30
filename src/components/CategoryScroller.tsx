@@ -1,8 +1,5 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
-
 type Cat = { id: string; name: string };
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -23,29 +20,17 @@ const CATEGORY_EMOJI: Record<string, string> = {
 export function CategoryScroller({
   categories,
   activeCat,
+  onSelectCat,
 }: {
   categories: Cat[];
   activeCat: string;
+  onSelectCat: (categoryId: string) => void;
 }) {
-  const router = useRouter();
-  const sp = useSearchParams();
-  const [, go] = useTransition();
-
-  function select(catId: string) {
-    const params = new URLSearchParams(sp.toString());
-    if (catId === activeCat || !catId) {
-      params.delete("cat");
-    } else {
-      params.set("cat", catId);
-    }
-    const qs = params.toString();
-    go(() => router.push(qs ? `/?${qs}` : "/", { scroll: false }));
-  }
-
   return (
     <div className="category-scroll flex gap-3 pb-2 pt-2">
       <button
-        onClick={() => select("")}
+        type="button"
+        onClick={() => onSelectCat("")}
         className={`flex shrink-0 flex-col items-center gap-1.5 rounded-2xl px-4 py-3 transition ${
           !activeCat
             ? "bg-[var(--accent)] text-white shadow-md shadow-orange-200"
@@ -58,7 +43,10 @@ export function CategoryScroller({
       {categories.map((c) => (
         <button
           key={c.id}
-          onClick={() => select(c.id)}
+          type="button"
+          onClick={() =>
+            onSelectCat(activeCat === c.id ? "" : c.id)
+          }
           className={`flex shrink-0 flex-col items-center gap-1.5 rounded-2xl px-4 py-3 transition ${
             activeCat === c.id
               ? "bg-[var(--accent)] text-white shadow-md shadow-orange-200"

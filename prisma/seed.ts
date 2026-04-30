@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 
 const TARGET_DISHES = 50;
 
+/** Alle coördinaten liggen in Amsterdam (centrum + omliggende wijken) voor realistische afstanden. */
 const restaurants = [
   {
     name: "Casa Riva",

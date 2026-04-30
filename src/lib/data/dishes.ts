@@ -145,7 +145,7 @@ export async function searchDishes(filters: SearchFilters): Promise<DishListItem
   const dishes = await prisma.dish.findMany({
     where,
     ...dishWith,
-    take: 200,
+    take: 500,
     orderBy: { name: "asc" },
   });
 
