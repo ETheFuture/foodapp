@@ -134,11 +134,12 @@ export function SearchFilters({
           <span className="text-[11px] text-zinc-500">Max</span>
           <input
             type="number"
-            min={1}
-            max={50}
+            min={0.5}
+            max={500}
+            step={0.5}
             value={maxDistance}
             onChange={(e) => setMaxDistance(e.target.value)}
-            className="w-8 bg-transparent text-xs font-semibold text-[var(--text)] focus:outline-hidden"
+            className="w-10 bg-transparent text-xs font-semibold text-[var(--text)] focus:outline-hidden"
           />
           <span className="text-[11px] text-zinc-500">km</span>
         </div>

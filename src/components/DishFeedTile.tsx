@@ -17,7 +17,7 @@ export function DishFeedTile({ dish, priority = false }: Props) {
           src={main.imageUrl}
           alt={dish.name}
           fill
-          loading="eager"
+          loading={priority ? "eager" : "lazy"}
           className="object-cover transition duration-500 ease-out group-hover:scale-[1.04]"
           sizes="(max-width: 640px) 33vw, (max-width: 1024px) 28vw, 20vw"
           priority={priority}

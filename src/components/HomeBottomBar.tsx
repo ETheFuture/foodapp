@@ -1,19 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { parseHomeRadiusParam } from "@/lib/home-radius";
+import {
+  HOME_RADIUS_LABELS,
+  HOME_RADIUS_STEPS_KM,
+  homeRadiusStepIndex,
+  parseHomeRadiusParam,
+} from "@/lib/home-radius";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition, FormEvent } from "react";
 
-const STEPS = [0.5, 1, 2, 5, 10] as const;
-const LABELS = ["500m", "1km", "2km", "5km", "10km"] as const;
-
 type Props = { defaultQ: string };
-
-function si(r: number) {
-  const i = STEPS.findIndex((x) => Math.abs(x - r) < 0.001);
-  return i >= 0 ? i : 1;
-}
 
 function toUrl(q: string, km: number) {
   const p = new URLSearchParams();
@@ -31,25 +28,33 @@ export function HomeBottomBar({ defaultQ }: Props) {
   const [q, setQ] = useState(defaultQ);
 
   const km = parseHomeRadiusParam(sp.get("radius"));
-  const index = si(km);
+  const index = homeRadiusStepIndex(km);
 
-  useEffect(() => { setQ(sp.get("q")?.trim() ?? ""); }, [sp]);
+  useEffect(() => {
+    setQ(sp.get("q")?.trim() ?? "");
+  }, [sp]);
 
   const nav = useCallback(
-    (nq: string, nk: number) => { go(() => router.push(toUrl(nq, nk), { scroll: false })); },
+    (nq: string, nk: number) => {
+      go(() => router.push(toUrl(nq, nk), { scroll: false }));
+    },
     [router],
   );
 
-  const submit = (e: FormEvent) => { e.preventDefault(); nav(q, STEPS[index] ?? 1); };
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    nav(q, HOME_RADIUS_STEPS_KM[index] ?? 1);
+  };
 
   if (path !== "/") return null;
+
+  const maxIdx = HOME_RADIUS_STEPS_KM.length - 1;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
       <div className="mx-2 rounded-2xl border border-zinc-200/60 bg-white/92 shadow-xl shadow-black/6 backdrop-blur-2xl sm:mx-auto sm:max-w-sm">
         <div className="px-3 pb-1.5 pt-2">
 
-          {/* Search */}
           <form onSubmit={submit}>
             <div className="relative">
               <svg className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden>
@@ -72,26 +77,30 @@ export function HomeBottomBar({ defaultQ }: Props) {
             </div>
           </form>
 
-          {/* Slider */}
           <div className="mt-1.5 flex items-center gap-2">
-            <span className="shrink-0 text-[10px] font-medium text-zinc-400">
-              {LABELS[index]}
+            <span className="w-11 shrink-0 text-right text-[9px] font-semibold leading-tight text-zinc-500 sm:text-[10px]">
+              {HOME_RADIUS_LABELS[index]}
             </span>
             <input
               type="range"
               min={0}
-              max={STEPS.length - 1}
+              max={maxIdx}
               step={1}
               value={index}
-              onChange={(e) => nav(q, STEPS[Number(e.target.value)] ?? 1)}
+              onChange={(e) =>
+                nav(q, HOME_RADIUS_STEPS_KM[Number(e.target.value)] ?? 1)
+              }
               className="feed-slider h-5 min-w-0 flex-1 cursor-pointer appearance-none bg-transparent"
+              aria-valuemin={0}
+              aria-valuemax={maxIdx}
+              aria-valuenow={index}
+              aria-label="Maximale afstand"
             />
-            <span className="shrink-0 text-[10px] font-medium text-zinc-400">
-              {LABELS[LABELS.length - 1]}
+            <span className="w-11 shrink-0 text-left text-[9px] font-semibold leading-tight text-zinc-500 sm:text-[10px]">
+              {HOME_RADIUS_LABELS[maxIdx]}
             </span>
           </div>
 
-          {/* Nav */}
           <nav className="mt-1 flex items-center justify-around" aria-label="Navigatie">
             <Tab href="/" icon="home" label="Feed" active />
             <Tab href="/search" icon="search" label="Zoek" />

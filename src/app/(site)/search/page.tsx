@@ -17,7 +17,7 @@ export default async function SearchPage({
 }) {
   const p = await searchParams;
   const { lat, lon } = AMSTERDAM_DEFAULT;
-  const maxDistance = Math.min(50, Math.max(0.5, Number(p.maxDistance) || 25));
+  const maxDistance = Math.min(500, Math.max(0.5, Number(p.maxDistance) || 25));
   const maxPrice = Math.max(5, Math.min(200, Number(p.maxPrice) || 150));
 
   let dishes: Awaited<ReturnType<typeof searchDishes>> = [];
